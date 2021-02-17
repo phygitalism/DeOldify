@@ -5,6 +5,8 @@
 
 The **most advanced** version of DeOldify image colorization is available here, exclusively.  Try a few images for free! [MyHeritage In Color](https://www.myheritage.com/incolor)
 
+**This fork contains some fix in Docker API**
+
 ----------------------------
 
 Image (artistic) [<img src="https://colab.research.google.com/assets/colab-badge.svg" align="center">](https://colab.research.google.com/github/jantic/DeOldify/blob/master/ImageColorizerColab.ipynb) |
@@ -304,21 +306,18 @@ cd DeOldify && ./quick_start.sh notebook my_super_password
 your notebook will be accessible on port 8888
 
 ### Quickstart APIs
+
 Cloning
 ```console
-git clone https://github.com/jantic/DeOldify.git DeOldify
+git clone https://github.com/phygitalism/DeOldify.git DeOldify
 ```
 
 Starting the image api
 ```console
-cd DeOldify && ./quick_start.sh image_api
+docker build -t deoldify_api -f Dockerfile-api .
 ```
 
-Starting the video api
-```console
-cd DeOldify && ./quick_start.sh image_api
-```
-your API will be accessible on port 5000
+Your API will be accessible on port `LOCAL_PORT`
 
 ### Docker for Jupyter
 
@@ -343,12 +342,14 @@ echo "http://$(curl ifconfig.io):8888" && nvidia-docker run --ipc=host --env NOT
 
 You can build and run the docker using the following process:
 
+Setup [nvidia-docker](https://github.com/NVIDIA/nvidia-docker)
+
 Cloning
 ```console
 git clone https://github.com/jantic/DeOldify.git DeOldify
 ```
-
 Building Docker
+
 ```console
 cd DeOldify && docker build -t deoldify_api -f Dockerfile-api .
 ```
@@ -356,7 +357,7 @@ cd DeOldify && docker build -t deoldify_api -f Dockerfile-api .
 
 Running Docker
 ```console
-echo "http://$(curl ifconfig.io):5000" && nvidia-docker run --ipc=host -p 5000:5000 -d deoldify_api
+docker run -it -p LOCAL_PORT:5000 deoldify_api
 ```
 
 Calling the API for image processing for a remote image
@@ -366,7 +367,7 @@ curl -X POST "http://MY_SUPER_API_IP:5000/process" -H "accept: image/png" -H "Co
 
 Calling the API for image processing for a local image
 ```console
-curl -X POST "http://MY_SUPER_API_IP:5000/process" -H "accept: image/png" -H "Content-Type: image/jpeg" -F "file=@slave-family-P.jpeg" -F "render_factor=35" --output colorized_image.png
+curl -H "accept: image/png" -F 'file=@9.jpg' -F "render_factor=35" "http://localhost:LOCAL_PORT/process" --output colorized_image.png
 ```
 
 Calling the API for video processing for a remote video

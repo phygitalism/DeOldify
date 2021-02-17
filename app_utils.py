@@ -1,11 +1,9 @@
 import os
 import requests
-import random
 import _thread as thread
 from uuid import uuid4
 
 import numpy as np
-import skimage
 from skimage.filters import gaussian
 from PIL import Image
 
