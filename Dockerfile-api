@@ -1,32 +1,25 @@
-From nvcr.io/nvidia/pytorch:19.04-py3
+FROM nvcr.io/nvidia/pytorch:19.04-py3
 
-RUN apt-get -y update
-
-RUN apt-get install -y python3-pip software-properties-common wget ffmpeg
-
-RUN apt-get -y update
+RUN apt update -y && \
+    apt install -y python3-pip software-properties-common wget ffmpeg
 
 RUN mkdir -p /root/.torch/models
 
 RUN mkdir -p /data/models
 
-ADD . /data/
-
 WORKDIR /data
 
-RUN pip install -r requirements.txt
+COPY ./requirements.txt ./requirements.server.txt ./
 
-RUN pip install  Flask
+ENV PIP_NO_CACHE_DIR=1
 
-RUN pip install Pillow
+RUN pip install -r ./requirements.server.txt
 
-RUN pip install scikit-image
+COPY ./deoldify ./deoldify
 
-RUN pip install requests
+COPY ./app.py ./app_utils.py ./
 
 EXPOSE 5000
 
-ENTRYPOINT ["python3"]
-
-CMD ["app.py"]
+CMD python3 -u ./app.py
 

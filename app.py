@@ -1,29 +1,20 @@
 # import the necessary packages
 import os
-import sys
-import requests
-import ssl
+import logging
+
 from flask import Flask
 from flask import request
-from flask import jsonify
 from flask import send_file
-
+import torch
 
 from app_utils import download
 from app_utils import generate_random_filename
-from app_utils import clean_me
 from app_utils import clean_all
 from app_utils import create_directory
 from app_utils import get_model_bin
 from app_utils import convertToJPG
 
-from os import path
-import torch
-
-import fastai
 from deoldify.visualize import *
-from pathlib import Path
-import traceback
 
 
 # Handle switch between GPU and CPU
@@ -35,6 +26,7 @@ else:
 
 
 app = Flask(__name__)
+app.logger.setLevel(logging.INFO)
 
 
 def allowed_file(filename):
@@ -48,13 +40,16 @@ def process_image():
     output_path = os.path.join(results_img_directory, os.path.basename(input_path))
 
     try:
+        app.logger.info(request.form.getlist("render_factor"))
         if 'file' in request.files:
             file = request.files['file']
+            app.logger.info(file)
             if allowed_file(file.filename):
                 file.save(input_path)
             try:
                 render_factor = request.form.getlist('render_factor')[0]
-            except:
+            except Exception as exc:
+                app.log_exception(exc)
                 render_factor = 30
             
         else:
@@ -63,7 +58,8 @@ def process_image():
 
             try:
                 render_factor = request.json["render_factor"]
-            except:
+            except Exception as exc:
+                app.log_exception(exc)
                 render_factor = 30
 
         try:
@@ -78,12 +74,11 @@ def process_image():
         
         return callback, 200
 
-    except:
-        traceback.print_exc()
+    except Exception as exc:
+        app.log_exception(exc)
         return {'message': 'input error'}, 400
 
     finally:
-        pass
         clean_all([
             input_path,
             output_path
